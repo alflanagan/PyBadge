@@ -5,14 +5,8 @@ from BadgeSerial import BadgeSerial
 
 import logging
 
-
-cmap = dict(
-            grey='0110001100011000',
-            blue='0000000000011111',
-            green='0000001111100000',
-            red='1111100000000000'
-           )
-
+#/** Packs colors R, G, B into one 16-bit word. */
+#define RGBPACKED(R,G,B) ( ((unsigned short)(R)<<11) | ((unsigned short)(G)<<6) | (unsigned short)(B) )
 class ForthBadge(BadgeSerial):
     def __init__(self):
         self.forth_is_ready = False
@@ -60,17 +54,18 @@ class ForthBadge(BadgeSerial):
         self.forth_run('fbclear')
         return self
 
-    def set_background_color(self, cname='grey'):
-        self.forth_run(2, 'base',
-                       cmap[cname], 'fbbgc',
-                       10, 'base')
+    def set_background_color(self, color='grey'):
+        if isinstance(color, str):
+            color = self.cmap[color]
+
+        self.forth_run(color, 'fbbgc')
         return self
 
-    def set_draw_color(self, cname='red'):
-        # TODO store some state (such as base) in py object
-        self.forth_run(2, 'base')
-        self.forth_run(cmap[cname], 'fbcolor')
-        self.forth_run(10, 'base')
+    def set_draw_color(self, color='red'):
+        if isinstance(color, str):
+            color = self.cmap[color]
+
+        self.forth_run(color, 'fbcolor')
         return self
 
     def draw_line(self, x0, y0, x1, y1):

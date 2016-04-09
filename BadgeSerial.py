@@ -1,9 +1,25 @@
 import serial
 import time
-import base64
-
 import logging
 
+def_cmap = dict(
+            d_blue = 0b0000000000000111,
+            b_blue = 0b1000010000011111,
+            blue   = 0b0000000000011111,
+            green  = 0b0000011111100000,
+            red    = 0b1111100000000000,
+            black  = 0b0000000000000000,
+            grey1  = 0b0000100001000001,
+            grey2  = 0b0001000010000010,
+            grey4  = 0b0010000100000100,
+            grey8  = 0b0100001000001000,
+            grey16 = 0b1000010000010000,
+            white  = 0b1111111111111111,
+            cyan   = 0b0000011111111111,
+            yellow = 0b1111111111100000,
+            magent = 0b1111100000011111,
+            grey   = 0b0110001100011000,
+           )
 
 class BadgeSerial(object):
     """
@@ -14,7 +30,11 @@ class BadgeSerial(object):
     """
     def_dev_to_try = ['/dev/ttyACM%d'%i for i in range(0, 10)]
     # TODO: Support other OS serial port mappings
-    def __init__(self, device=None, ser=None, min_write_dt=0.001):
+    def __init__(self, device=None, ser=None, min_write_dt=0.001,
+                 cmap=None):
+        if cmap is None:
+            cmap = def_cmap
+
         if device is None:
             try_devs = BadgeSerial.def_dev_to_try
         else:
@@ -32,6 +52,8 @@ class BadgeSerial(object):
 
         self.os_device = dev
         self.os_ser = ser
+
+        self.cmap = cmap
 
         self.last_write_time = time.time()
         self.min_write_dt = min_write_dt
@@ -150,6 +172,17 @@ class BadgeSerial(object):
 
         byte_data = BadgeSerial.make_bytes(*args)
         write_cnt =  self._write(byte_data, **write_kwargs)
+
+    @staticmethod
+    def pack_rgb(r, g, b):
+        if r > 31: r = 31
+        if g > 63: g = 63
+        if b > 31: b = 31
+        rh = r << 11
+        gh = g << 6
+        bh = b
+        return int(bin(rh|gh|bh), 2)
+
 
     def close(self):
         self.os_ser.close()
