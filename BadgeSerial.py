@@ -2,6 +2,7 @@ import serial
 import time
 import logging
 
+# Access to colormap
 def_cmap = dict(
             d_blue = 0b0000000000000111,
             b_blue = 0b1000010000011111,
