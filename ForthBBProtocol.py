@@ -111,3 +111,8 @@ class ForthBadge(BadgeSerial):
     def get_vertical_slider_pos(self):
         self.forth_run('get_vert_pos')
         return self
+
+    def send_message(self, msg, ttl=3):
+        for idx, c in enumerate(msg):
+            self.forth_run(idx, ord(c), 'msgset')
+        self.forth_run(ttl, 'msg_send_outgoing_msg')
