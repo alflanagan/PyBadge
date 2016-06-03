@@ -34,12 +34,29 @@ def draw_sin_test(badge, num_points=50, step_size=0.1):
 
     badge.swap_buffer()
 
+def mon_sliders(badge, num_points=50):
+    for i in range(num_points):
+        vert_pos = badge.get_vertical_slider_pos()
+        print("Vert Pos: %s" % str(vert_pos))
+
 
 
 badge = bb.ForthBadge()
 
-badge.set_draw_color('green')
+#badge.set_draw_color('green')
 
-led_test2(badge, count=2)
+#led_test2(badge, count=2)
 
-draw_sin_test(badge)
+#draw_sin_test(badge)
+
+#badge.set_cursor(10, 10).draw_char('t')
+#badge.set_cursor(25, 10).draw_char('e')
+#badge.set_cursor(40, 10).draw_char('s')
+#badge.set_cursor(55, 10).draw_char('t').swap_buffer()
+
+badge.set_cursor(10, 10).draw_rect(10,12)
+badge.set_cursor(25, 10).draw_rect(10,12)
+badge.set_cursor(40, 10).draw_rect(10,12)
+badge.set_cursor(55, 10).draw_rect(10,12).push_buffer()
+
+mon_sliders(badge)

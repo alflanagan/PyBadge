@@ -5,8 +5,6 @@ from BadgeSerial import BadgeSerial
 
 import logging
 
-#/** Packs colors R, G, B into one 16-bit word. */
-#define RGBPACKED(R,G,B) ( ((unsigned short)(R)<<11) | ((unsigned short)(G)<<6) | (unsigned short)(B) )
 class ForthBadge(BadgeSerial):
     def __init__(self):
         self.forth_is_ready = False
@@ -16,6 +14,9 @@ class ForthBadge(BadgeSerial):
         if not self.forth_is_ready:
             self._write_bytes('!',
                               write_kwargs=dict(bypass_ret_length=True))
+            self._write_bytes('0 echo !',
+                              write_kwargs=dict(bypass_ret_length=True))
+
             self.forth_is_ready = True
 
         tb = " ".join([str(a) for a in args])
@@ -91,10 +92,22 @@ class ForthBadge(BadgeSerial):
             self.forth_run(height, width, 'fbfrect')
         return self
 
+    def draw_char(self, char):
+        self.forth_run(char, "fbchar")
+        return self
+
     def set_cursor(self, x, y):
         self.forth_run(y, x, 'fbmove')
         return self
 
     def swap_buffer(self):
         self.forth_run('fbsb')
+        return self
+
+    def push_buffer(self):
+        self.forth_run('fbpb')
+        return self
+
+    def get_vertical_slider_pos(self):
+        self.forth_run('get_vert_pos')
         return self

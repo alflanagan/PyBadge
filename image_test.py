@@ -38,8 +38,9 @@ def draw_image_to_badge(image_path,
             if show_progress:
                 num_bars = int(20*(cnt/float(num_pix)))
                 print("[%d/%d]|%s%s|" % (cnt, num_pix, ("="*num_bars), "-"*(20-num_bars)), end='\r')
+        badge.push_buffer()
 
-    badge.swap_buffer()
+    #badge.swap_buffer()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Send an image to the badge")
