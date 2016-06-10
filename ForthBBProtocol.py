@@ -70,34 +70,43 @@ class ForthBadge(BadgeSerial):
         return self
 
     def draw_line(self, x0, y0, x1, y1):
-        self.forth_run(y1, x1, y0, x0, 'fbline')
+        #self.forth_run(y1, x1, y0, x0, 'fbline')
+        self.forth_run(x0, y0, x1, y1, 'fbline')
         return self
 
     def draw_hline(self, x0, y0, x1, y1):
-        self.forth_run(y1, x1, y0, x0, 'fbhline')
+        #self.forth_run(y1, x1, y0, x0, 'fbhline')
+        self.forth_run(x0, y0, x1, y1, 'fbhline')
         return self
 
     def draw_vline(self, x0, y0, x1, y1):
-        self.forth_run(y1, x1, y0, x0, 'fbvline')
+        #self.forth_run(y1, x1, y0, x0, 'fbvline')
+        self.forth_run(x0, y0, x1, y1, 'fbvline')
         return self
 
     def draw_point(self, x, y):
-        self.forth_run(y, x, 'fbpoint')
+        self.forth_run(x, y, 'fbpoint')
         return self
 
     def draw_rect(self, width, height, filled=False):
         if not filled:
-            self.forth_run(height, width, 'fbrect')
+            self.forth_run(width, height, 'fbrect')
         else:
-            self.forth_run(height, width, 'fbfrect')
+            self.forth_run(width, height, 'fbfrect')
         return self
 
     def draw_char(self, char):
-        self.forth_run(char, "fbchar")
+        self.forth_run(ord(char), "fbchar")
+        return self
+
+    def writeline(self, x, y, ln, char_w=8):
+        for i, c in enumerate(ln):
+            self.set_cursor(x+(i*char_w), y)
+            self.draw_char(c)
         return self
 
     def set_cursor(self, x, y):
-        self.forth_run(y, x, 'fbmove')
+        self.forth_run(x, y, 'fbmove')
         return self
 
     def swap_buffer(self):
@@ -108,9 +117,9 @@ class ForthBadge(BadgeSerial):
         self.forth_run('fbpb')
         return self
 
-    def get_vertical_slider_pos(self):
-        self.forth_run('get_vert_pos')
-        return self
+#    def get_vertical_slider_pos(self):
+#        self.forth_run('get_vert_pos')
+#        return self
 
     def send_message(self, msg, ttl=3):
         for idx, c in enumerate(msg):
