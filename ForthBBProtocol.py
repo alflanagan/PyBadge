@@ -39,15 +39,14 @@ class ForthBadge(BadgeSerial):
             self.forth_run(int(blue), 'blueled')
         return self
 
-    # Contrast of ~50 is pretty nice
     def contrast(self, contrast_value):
-        #self._write_bytes('@C', 50)
         return self
 
     def sound(self, note, duration=None):
         if duration is None:
             duration = 128
 
+        self.forth_run(note, duration, 'setnote')
         #self._write_bytes('@s', note, duration)
         return self
 
@@ -70,17 +69,14 @@ class ForthBadge(BadgeSerial):
         return self
 
     def draw_line(self, x0, y0, x1, y1):
-        #self.forth_run(y1, x1, y0, x0, 'fbline')
         self.forth_run(x0, y0, x1, y1, 'fbline')
         return self
 
     def draw_hline(self, x0, y0, x1, y1):
-        #self.forth_run(y1, x1, y0, x0, 'fbhline')
         self.forth_run(x0, y0, x1, y1, 'fbhline')
         return self
 
     def draw_vline(self, x0, y0, x1, y1):
-        #self.forth_run(y1, x1, y0, x0, 'fbvline')
         self.forth_run(x0, y0, x1, y1, 'fbvline')
         return self
 

@@ -5,6 +5,10 @@ import pandas as pd
 import psutil
 import time
 
+import logging
+logger = logging.getLogger()
+logger.setLevel(level=logging.ERROR)
+
 class BadgeSysMon:
     def __init__(self, badge, max_history=65):
         self.done = False
@@ -52,7 +56,6 @@ class BadgeSysMon:
                     x_origin=3, y_origin=125,
                     step_size=2):
         self.badge.set_draw_color(color)
-        print(points)
         for i in range(1, len(points)):
             x_start = x_origin+ i*step_size
             if x_start > 120:
@@ -63,6 +66,8 @@ class BadgeSysMon:
 
         #self.badge.push_buffer()
 
+    # TODO: replace magic numbers for x,y in draws with
+    # placement logic (e.g. keep hostname centered at top)
     def render(self, plot_avg_cpu=True, data_scaling=.5):
         self.badge.set_cursor(10, 10).set_draw_color('green')
         self.badge.writeline(20, 10, self.hostname,
