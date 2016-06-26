@@ -25,11 +25,24 @@ def_cmap = dict(
 class BadgeSerial(object):
     """
     Encapsulates functionality needed to send arbitrary data to the badge.
-    Therefore, does not include anything protocol specific - implementing
-    a protocol is probably best performed by deriving from this class
-    and adding methods that use make_bytes, _write, etc.
+    Therefore, does not include anything protocol specific - implementing a
+    protocol is probably best performed by deriving from this class and
+    adding methods that use make_bytes, _write, etc.
+
+    :param str device: A serial device. If ``None``, tries '/dev/ttyACM0' ...
+        '/dev/ttyACM9' to find the first active device.
+
+    :param serial.Serial ser: A serial connection object. If provided does
+        not attempt to open `device`.
+
+    :param float min_write_dt: minimum time (in seconds) between writes when
+        using `_flushing_write`.
+
+    :param dict cmap: Dictionary from color name to color value.
+
     """
     def_dev_to_try = ['/dev/ttyACM%d'%i for i in range(0, 10)]
+
     # TODO: Support other OS serial port mappings
     def __init__(self, device=None, ser=None, min_write_dt=0.001,
                  cmap=None):
@@ -69,20 +82,21 @@ class BadgeSerial(object):
 
     @staticmethod
     def connect_to_badge(port):
+        """Creates and returns a `serial.Serial` connection to the badge."""
         # TODO: Not sure what appropriate settings are here
-        #       since nearly everything I've tried seems to
+        #       since nearly everything I've tried seems
         #       to work the same. Lower baudrate may help
         #       the buffering problems though?
         return serial.Serial(
-                    port=port,
-                    #baudrate=9600,
-                    baudrate=115200,
-                    xonxoff=True,
-                    parity=serial.PARITY_ODD,
-                    stopbits=serial.STOPBITS_TWO,
-                    #bytesize=serial.SEVENBITS
-                    bytesize=serial.EIGHTBITS
-                )
+            port=port,
+            #baudrate=9600,
+            baudrate=115200,
+            xonxoff=True,
+            parity=serial.PARITY_ODD,
+            stopbits=serial.STOPBITS_TWO,
+            #bytesize=serial.SEVENBITS
+            bytesize=serial.EIGHTBITS
+        )
 
     @staticmethod
     def make_bytes(*args):
@@ -124,7 +138,7 @@ class BadgeSerial(object):
             while ret_length  > read_cnt:
                 read_cnt += len(self.os_ser.read_all())
                 #print("Read count: %d/%d" % (read_cnt, ret_length))
-                logging.info("Read count: %d/%d" % (read_cnt, ret_length))
+                logging.info("Read count: %d/%d", read_cnt, ret_length)
                 time.sleep(1)
 
             cnt = read_cnt
@@ -151,7 +165,7 @@ class BadgeSerial(object):
     def _throttled_write(self, data, save_ret=False, **kwargs):
         dt = time.time() - self.last_write_time
         if dt < self.min_write_dt:
-            logging.warning("To fast, blocking for %f" % (self.min_write_dt - dt))
+            logging.warning("Too fast, blocking for %f", self.min_write_dt - dt)
             time.sleep(self.min_write_dt - dt)
 
         self.last_write_time = time.time()
@@ -175,19 +189,24 @@ class BadgeSerial(object):
         write_cnt =  self._write(byte_data, **write_kwargs)
 
     @staticmethod
-    def pack_rgb(r, g, b):
-        if r > 31: r = 31
-        if g > 63: g = 63
-        if b > 31: b = 31
-        rh = r << 11
-        gh = g << 6
-        bh = b
-        return int(bin(rh|gh|bh), 2)
+    def pack_rgb(red, green, blue):
+        """Create an RGB 16-bit value as used by badge.
 
+        :returns int: bit pattern RRRRRGGGGGGBBBBB
+
+        """
+        return (red % 32) << 11 | (green % 64) << 5 | (blue % 32)
 
     def close(self):
+        """Close the connection to the badge."""
         self.os_ser.close()
+        self.os_ser = None
 
     def reconnnect(self):
+        """Create a new connection to the badge.
+
+        :returns BadgeSerial: this object.
+
+        """
         self.os_ser = BadgeSerial.connect_to_badge(self.os_device)
         return self
