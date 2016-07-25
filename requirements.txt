@@ -4,12 +4,11 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-
-numpy==1.11.0             # via pandas
+numpy==1.11.1             # via pandas
 pandas==0.18.1
-pillow==3.2.0
-psutil==4.2.0
+pillow==3.3.0
+psutil==4.3.0
 pyserial==3.1.1
 python-dateutil==2.5.3    # via pandas
-pytz==2016.4              # via pandas
+pytz==2016.6.1            # via pandas
 six==1.10.0               # via python-dateutil
