@@ -1,14 +1,10 @@
-import serial
-import time
-import base64
 from BadgeSerial import BadgeSerial
 
-import logging
 
 class ForthBadge(BadgeSerial):
-    def __init__(self):
+    def __init__(self, *args):
         self.forth_is_ready = False
-        super().__init__()
+        super().__init__(*args)
 
     def forth_run(self, *args, auto_polish=False):
         if not self.forth_is_ready:
