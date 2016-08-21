@@ -6,28 +6,23 @@ import logging
 
 # Access to colormap
 def_cmap = dict(
-    d_blue = 0b0000000000000111,
-    b_blue = 0b1000010000011111,
-    blue   = 0b0000000000011111,
-    green  = 0b0000011111100000,
-    red    = 0b1111100000000000,
-    black  = 0b0000000000000000,
-    grey1  = 0b0000100001000001,
-    grey2  = 0b0001000010000010,
-    grey4  = 0b0010000100000100,
-    grey8  = 0b0100001000001000,
-    grey16 = 0b1000010000010000,
-    white  = 0b1111111111111111,
-    cyan   = 0b0000011111111111,
-    yellow = 0b1111111111100000,
-    magent = 0b1111100000011111,
-    grey   = 0b0110001100011000,
+    d_blue=0b0000000000000111,
+    b_blue=0b1000010000011111,
+    blue=0b0000000000011111,
+    green=0b0000011111100000,
+    red=0b1111100000000000,
+    black=0b0000000000000000,
+    grey1=0b0000100001000001,
+    grey2=0b0001000010000010,
+    grey4=0b0010000100000100,
+    grey8=0b0100001000001000,
+    grey16=0b1000010000010000,
+    white=0b1111111111111111,
+    cyan=0b0000011111111111,
+    yellow=0b1111111111100000,
+    magent=0b1111100000011111,
+    grey=0b0110001100011000
 )
-
-
-class BadgeSerialException(Exception):
-    """An error occurred in the BadgeSerial class, such as a communications failure."""
-    pass
 
 
 class BadgeSerial(object):
@@ -49,7 +44,7 @@ class BadgeSerial(object):
     :param dict cmap: Dictionary from color name to color value.
 
     """
-    def_dev_to_try = ['/dev/ttyACM%d'%i for i in range(0, 10)]
+    def_dev_to_try = ['/dev/ttyACM%d' % i for i in range(10)]
 
     # TODO: Support other OS serial port mappings
     def __init__(self, device=None, ser=None, min_write_dt=0.001,
@@ -64,17 +59,14 @@ class BadgeSerial(object):
 
         # Try a bunch of device names
         # probably a way to do this more intelligently
-        dev = None
         if ser is None:
             for td in try_devs:
                 try:
                     ser = BadgeSerial.connect_to_badge(td)
                     dev = td
+                    break
                 except:
                     continue
-
-        if dev is None:
-            raise BadgeSerialException("Unable to find an attached badge!")
 
         self.os_device = dev
         self.os_ser = ser
@@ -101,12 +93,12 @@ class BadgeSerial(object):
         #       the buffering problems though?
         return serial.Serial(
             port=port,
-            #baudrate=9600,
+            # baudrate=9600,
             baudrate=115200,
             xonxoff=True,
             parity=serial.PARITY_ODD,
             stopbits=serial.STOPBITS_TWO,
-            #bytesize=serial.SEVENBITS
+            # bytesize=serial.SEVENBITS
             bytesize=serial.EIGHTBITS
         )
 
@@ -135,10 +127,10 @@ class BadgeSerial(object):
 
         # EX:  b'1 Ok redled\nOk '
         # 'Ok ' between each word, then the final newline ('\nOk')
-        ret_length= total_len + (len(words) - 1)*len('Ok ') + len('\nOk')
+        ret_length = total_len + (len(words) - 1) * len('Ok ') + len('\nOk')
         ret_length = 0
-        #print("DATA: %s" % data.decode())
-        #print("Ret len: %d" % ret_length)
+        # print("DATA: %s" % data.decode())
+        # print("Ret len: %d" % ret_length)
 
         write_cnt = self.os_ser.write(data)
 
@@ -147,7 +139,7 @@ class BadgeSerial(object):
             self.os_ser.flush()
             read_cnt = len(self.os_ser.read_all())
             #print("Performing ret length checks")
-            while ret_length  > read_cnt:
+            while ret_length > read_cnt:
                 read_cnt += len(self.os_ser.read_all())
                 #print("Read count: %d/%d" % (read_cnt, ret_length))
                 logging.info("Read count: %d/%d", read_cnt, ret_length)
@@ -173,11 +165,11 @@ class BadgeSerial(object):
 
         return cnt
 
-
     def _throttled_write(self, data, save_ret=False, **kwargs):
         dt = time.time() - self.last_write_time
         if dt < self.min_write_dt:
-            logging.warning("Too fast, blocking for %f", self.min_write_dt - dt)
+            logging.warning("Too fast, blocking for %f",
+                            self.min_write_dt - dt)
             time.sleep(self.min_write_dt - dt)
 
         self.last_write_time = time.time()
