@@ -1,3 +1,8 @@
 pylint
 coverage
 ipython
+jedi
+importmagic
+flake8
+autopep8
+yapf
