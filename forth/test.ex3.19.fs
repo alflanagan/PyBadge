@@ -18,4 +18,20 @@ CR ;
 
 showfib
 
+100 fib CR
+
+: testfac
+    ." factorial 5 is: "
+    5 fac . CR
+    ." factorial 12 is: "
+    12 fac . CR
+    ." factorial 25 is: "
+    25 fac . CR
+    \    ." factorial -3 is: "
+    \    -3 fac . CR
+    \ https://en.wikipedia.org/wiki/Gamma_function
+;
+
+testfac
+
 bye
