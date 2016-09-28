@@ -1,72 +1,79 @@
-\ just a basic hello, badge! program
-
-: fb." IMMEDIATE		( X Y -- )
-	STATE @ IF	( compiling? )
-	\	[COMPILE] S"	( read the string, and compile LITSTRING, etc. )
-            \	' TELL ,	( compile the final TELL )
-            char e fbchar
-	ELSE
-		( In immediate mode, just read characters and print them until we get
-		  to the ending double quote. )
-		BEGIN
-			KEY
-			DUP '"' = IF
-				DROP	( drop the double quote character )
-				EXIT	( return from this function )
-			THEN
-                        fbchar
-		AGAIN
-	THEN
+: fb." IMMEDIATE
+    STATE @ IF	( compiling? )
+        [COMPILE] S"	( read the string, and compile LITSTRING, etc. )
+        ' fbwriteline ,	( compile the final TELL )
+    ELSE
+        ( In immediate mode, just read characters and print them until we get
+        to the ending double quote. )
+        BEGIN
+            KEY
+            DUP '"' = IF
+                DROP	( drop the double quote character )
+                EXIT	( return from this function )
+            THEN
+            EMIT
+        AGAIN
+    THEN
 ;
 
-: fb.s
-    dsp@
-    dup
-    s0 \ top of param stack
-    @ < if
-        dup
-        @
-        fbchar
-        char ' ' fbchar
-        4+
-    then
-    drop
-;
-
-: fb." immediate
-    begin
-        key
-        dup '"' <> IF
-            fbchar
-        then
-            exit
-        else
-    again
-;
-\         dup '"' = IF
-\             drop
-\             exit
-\         then
-\         \ again
-\         key
-\         fbchar
-\     \ loop
-\ ;
 
 : fbtest ( -- )
     10
     begin
-        5 + dup
+        15 + dup
         0 120 30 fbline
-        dup 35 = if exit then
+        dup 105 > if exit then
     again
 ;
-    
-        
-\ fbclear 5 10 fbmove \ fb." hello"
-\ sayhello
-\  0 0 120 30 fb.s
-fbtest
-\ 0 0 120 30 fbline
+
+: dumps ( u1 u2 ... -- )
+    10 10 fbmove
+    10  \ initial x
+    begin
+        depth 2 = if
+            drop
+            exit
+        then
+        swap  \ get next value 
+        fbchar \ display
+        \ x = x + 8
+        8 +
+        dup
+        10 fbmove
+    again
+;
+
+: stackclear
+    begin
+        depth 0 = if
+            exit
+        then
+        drop
+    again
+;
+
+: dumbdumps
+    10
+    begin
+        depth 1 = if
+            drop
+            exit
+        then
+        swap
+        drop
+        8 +
+        dup
+        drop
+    again
+;
+
+fbclear
+\ stackclear
+\ 10 10 fbmove
+\ fbtest
+char l
+char e
+char h
+dumbdumps
 fbsb
 bye
