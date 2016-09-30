@@ -9,10 +9,16 @@
 
 include fuseful.fs
 
-: fdeterm ( a b c -- d )
-    \ compute the determinant b^2-4ac of 3 floating-point numbers
-    fswap fdup f* f-rot 4e f* f* f- ;
+: fdiscrim ( fa fb fc -- fa fb fc fd )
+    \ compute the discriminant b^2-4ac of 3 floating-point numbers
+    fover fdup f* \ b^2
+    3 fpick 2 fpick 4e f* f* \ 4ac
+    f- ;
 
-: fquad ( a b c -- d e )
+: fquad ( fa fb fc -- fa fb fc fd fe )
     \ compute two roots of the quadratic a + bx + cx^2
-    f3dup fdeterm ;
+    fdiscrim fsqrt 2 fpick fnegate fswap \ a b c -b sqrt(b^2-4ac)
+    f2dup f+ \ a b c -b sqrt(b^2-4ac) (-b+sqrt(b^2-4ac))
+    f-rot f- \ a b c (-b+sqrt(b^2-4ac)) (-b-sqrt(b^2-4ac))
+    4 fpick 2e f* ftuck \ a b c (-b+sqrt(b^2-4ac)) 2a (-b-sqrt(b^2-4ac)) 2a
+    f/ f-rot f/ ; \ a b c ((-b-sqrt(b^2-4ac))/2a) ((-b+sqrt(b^2-4ac))/2a)
