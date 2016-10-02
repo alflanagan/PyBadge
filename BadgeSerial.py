@@ -25,6 +25,10 @@ def_cmap = dict(
 )
 
 
+class BadgeSerialException(Exception):
+    pass
+
+
 class BadgeSerial(object):
     """
     Encapsulates functionality needed to send arbitrary data to the badge.
@@ -67,6 +71,9 @@ class BadgeSerial(object):
                     break
                 except:
                     continue
+
+        if ser is None:
+            raise BadgeSerialException("unable to find badge on serial port")
 
         self.os_device = dev
         self.os_ser = ser
