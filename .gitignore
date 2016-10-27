@@ -2,3 +2,4 @@ __pycache__
 # individual settings for wingide
 *.wpu
 *.fi
+.dir-locals.el

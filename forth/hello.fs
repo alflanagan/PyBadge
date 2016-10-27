@@ -1,22 +1,23 @@
-: fb." IMMEDIATE
-    STATE @ IF	( compiling? )
-        [COMPILE] S"	( read the string, and compile LITSTRING, etc. )
-        ' fbwriteline ,	( compile the final TELL )
-    ELSE
-        ( In immediate mode, just read characters and print them until we get
-        to the ending double quote. )
-        BEGIN
-            KEY
-            DUP '"' = IF
-                DROP	( drop the double quote character )
-                EXIT	( return from this function )
-            THEN
-            EMIT
-        AGAIN
-    THEN
-;
+\ : fb." IMMEDIATE
+\     STATE @ IF	( compiling? )
+\         [COMPILE] S"	( read the string, and compile LITSTRING, etc. )
+\         ' fbwriteline ,	( compile the final TELL )
+\     ELSE
+\         ( In immediate mode, just read characters and print them until we get
+\         to the ending double quote. )
+\         BEGIN
+\             KEY
+\             DUP '"' = IF
+\                 DROP	( drop the double quote character )
+\                 EXIT	( return from this function )
+\             THEN
+\             EMIT
+\         AGAIN
+\     THEN
+\ ;
 
 
+\ draws several lines fanning out from a single point
 : fbtest ( -- )
     10
     begin
@@ -26,6 +27,7 @@
     again
 ;
 
+\ write string to display. not working ?
 : dumps ( u1 u2 ... -- )
     10 10 fbmove
     10  \ initial x
@@ -43,7 +45,8 @@
     again
 ;
 
-: stackclear
+\ clear data stack. Standard word clears fp stack but we don't have one
+: clearstacks ( ... -- )
     begin
         depth 0 = if
             exit
@@ -67,13 +70,15 @@
     again
 ;
 
+\ display "fan" then return to regularly-scheduled programs
 fbclear
 \ stackclear
 \ 10 10 fbmove
-\ fbtest
-char l
-char e
-char h
-dumbdumps
+fbtest
+\ char l
+\ char e
+\ char h
+\ dumbdumps
 fbsb
-bye
+\ wait for button press?
+yield
