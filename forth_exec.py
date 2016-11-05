@@ -49,20 +49,21 @@ class Application(Frame):
 
     def send_file(self, _retry=False):
         """Send the selected file to the badge."""
-        try:
-            # oddly, very first set LED seems to not set correct color
-            self.badge.led(0, 0, 128)
-            self.badge.led(0, 0, 128)
-            with open(self.select.cget("value"), 'r') as forthin:
-                self.badge.forth_run(forthin.read())
-            time.sleep(1)  # because forth_run() may be too fast
-            self.badge.led(0, 128, 0)
-        except IOError:
-            if not _retry:
-                self.connect()
-                self.send_file(True)
-            else:
-                raise
+        if self.badge:
+            try:
+                # oddly, very first set LED seems to not set correct color
+                self.badge.led(0, 0, 128)
+                self.badge.led(0, 0, 128)
+                with open(self.select.cget("value"), 'r') as forthin:
+                    self.badge.forth_run(forthin.read())
+                time.sleep(1)  # because forth_run() may be too fast
+                self.badge.led(0, 128, 0)
+            except IOError:
+                if not _retry:
+                    self.connect()
+                    self.send_file(True)
+                else:
+                    raise
 
     def toggle_connect(self):
         "If connected, disconnect, otherwise connect."
@@ -75,9 +76,10 @@ class Application(Frame):
         "Disconnect from current badge."
         isinstance(self.badge, Badge)
         self.badge.close()
-        self.badge = "None"
+        self.badge = None
         self.connect_btn.config(text="Connect")
         self.connect_status.config(text="Not connected.")
+        self.exec_btn.state(["disabled"])
 
     def connect(self):
         """Attempt to connect to a badge; toggle Connect button if successful."""
@@ -85,6 +87,8 @@ class Application(Frame):
             self.badge = Badge()
             self.connect_status.config(text="Connected: " + self.badge.os_device)
             self.connect_btn.config(text="Disconnect")
+            # enable "Execute" if file is selected
+            self.on_file_selected(self.select.cget("value"))
         except BadgeSerialException:
             self.connect_status.config(text="Not connected")
 
