@@ -14,3 +14,4 @@ proj.file-type = 'shared'
 proj.launch-config = {loc('image_test.py'): ('project',
         (u'images/tux.jpg --bg-color=black\n',
          ''))}
+proj.main-file = loc('forth_exec.py')

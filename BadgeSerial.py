@@ -222,3 +222,10 @@ class BadgeSerial(object):
         """
         self.os_ser = BadgeSerial.connect_to_badge(self.os_device)
         return self
+
+    def read_text(self):
+        "A non-blocking read, returns any bytes received"
+        size = self.os_ser.in_waiting()
+        if size:
+            return self.os_ser.read(size)
+        return ""

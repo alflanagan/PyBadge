@@ -5,7 +5,8 @@ from pathlib import Path
 import time
 
 from tkinter.ttk import Frame, Button, Label
-from tkinter import tix
+from tkinter import tix, Text
+from tkinter import scrolledtext
 
 from BadgeSerial import BadgeSerialException
 from ForthBBProtocol import ForthBadge as Badge
@@ -27,25 +28,41 @@ class Application(Frame):
 
     def create_widgets(self):
         """Sets up dialog elements."""
+        da_row = 0
+        "counter so I don't have to update every grid() call when I add/remove row"
         self.select = tix.FileSelectBox(self, browsecmd=self.on_file_selected,
                                         pattern="*.fs", directory="forth")
         # self.select["textVariable"] = self.forth_file
-        self.select.grid(row=0, columnspan=2, sticky='n'+'w'+'e')
+        self.select.grid(row=da_row, columnspan=2, sticky='n'+'w'+'e')
+        da_row += 1
+        self.output_label = Label(self, text="Badge Output")
+        self.output_label.grid(row=da_row, column=0, sticky='w', padx=10)
+        da_row += 1
+        # height is in lines, not pixels, because of course
+        self.output = Text(self, height=20, state="disabled")
+        self.output.grid(row=da_row, columnspan=2, padx=10)
+        da_row += 1
         self.connect_btn = Button(self, text="Connect",
                                   command=self.toggle_connect)
-        self.connect_btn.grid(row=1, column=0, columnspan=2)
+        self.connect_btn.grid(row=da_row, column=0, columnspan=2)
+        da_row += 1
         self.exec_btn = Button(self, text="Execute", command=self.send_file)
         self.exec_btn.state(["disabled"])
-        self.exec_btn.grid(row=2, column=0, sticky='w' + 'e', padx=5, pady=3)
+        self.exec_btn.grid(row=da_row, column=0, sticky='w' + 'e', padx=10, pady=3)
         self.quit = Button(self, text="QUIT", command=self.master.destroy)
-        self.quit.grid(row=2, column=1, sticky='w' + 'e', padx=5, pady=3)
-        self.status_panel = Frame(self, relief="groove", borderwidth=3)
-        self.status_panel.grid(row=3, columnspan=2, sticky='nwse')
+        self.quit.grid(row=da_row, column=1, sticky='w' + 'e', padx=10, pady=3)
+        da_row += 1
+        self.status_panel = Frame(self, relief="sunken", borderwidth=3)
+        self.status_panel.grid(row=da_row, columnspan=2, sticky='nwse')
         self.connect_status = Label(self.status_panel, text="Not Connected")
-        self.connect_status.grid(row=0, padx=5, pady=5, sticky="w")
+        self.connect_status.grid(row=0, padx=10, pady=5, sticky="w")
         if self.badge is not None:
             self.connect_btn.state(["disabled"])
             self.connect_status.config(text="Connected: " + self.badge.os_device)
+        # self.output.text is a Text object, a subwidget
+        self.output["state"] = "normal"
+        self.output.insert("1.0", "This is a test")
+        self.output["state"] = "disabled"
 
     def send_file(self, _retry=False):
         """Send the selected file to the badge."""
@@ -64,6 +81,9 @@ class Application(Frame):
                     self.send_file(True)
                 else:
                     raise
+            output = self.badge.read_text()
+            if output:
+                self.output.insert("end", output)
 
     def toggle_connect(self):
         "If connected, disconnect, otherwise connect."
