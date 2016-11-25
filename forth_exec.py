@@ -11,6 +11,7 @@ from tkinter import scrolledtext
 from BadgeSerial import BadgeSerialException
 from ForthBBProtocol import ForthBadge as Badge
 
+SERIAL_POLL_INTERVAL = 5  # milliseconds
 
 # pylint: disable=R0901
 class Application(Frame):
@@ -24,7 +25,10 @@ class Application(Frame):
         self.rowconfigure(0, minsize=300)
         self.rowconfigure(3, minsize=30)
         self.create_widgets()
+        # self.output.insert("1.0", "This is a test\n")
+        # self.sentto.insert("end", b"this is an error\n", "error")
         self.connect()
+        self.after(SERIAL_POLL_INTERVAL, self.poll_serial)
 
     def create_widgets(self):
         """Sets up dialog elements."""
@@ -33,14 +37,19 @@ class Application(Frame):
         self.select = tix.FileSelectBox(self, browsecmd=self.on_file_selected,
                                         pattern="*.fs", directory="forth")
         # self.select["textVariable"] = self.forth_file
-        self.select.grid(row=da_row, columnspan=2, sticky='n'+'w'+'e')
+        self.select.grid(row=da_row, columnspan=2, sticky='nwes', pady=10)
         da_row += 1
         self.output_label = Label(self, text="Badge Output")
-        self.output_label.grid(row=da_row, column=0, sticky='w', padx=10)
+        self.output_label.grid(row=da_row, column=1, sticky='w', padx=10, pady=3)
+        self.sentto_label = Label(self, text="Sent To Badge")
+        self.sentto_label.grid(row=da_row, column=0, sticky='w', padx=10, pady=3)
         da_row += 1
-        # height is in lines, not pixels, because of course
-        self.output = Text(self, height=20, state="disabled")
-        self.output.grid(row=da_row, columnspan=2, padx=10)
+        # height is in lines, width in characters
+        self.output = Text(self, height=16, width=40)
+        self.output.grid(row=da_row, column=1, padx=10)
+        self.sentto = Text(self, height=16, width=40)
+        self.sentto.tag_configure("error", background="red")
+        self.sentto.grid(row=da_row, column=0, padx=10)
         da_row += 1
         self.connect_btn = Button(self, text="Connect",
                                   command=self.toggle_connect)
@@ -59,10 +68,6 @@ class Application(Frame):
         if self.badge is not None:
             self.connect_btn.state(["disabled"])
             self.connect_status.config(text="Connected: " + self.badge.os_device)
-        # self.output.text is a Text object, a subwidget
-        self.output["state"] = "normal"
-        self.output.insert("1.0", "This is a test")
-        self.output["state"] = "disabled"
 
     def send_file(self, _retry=False):
         """Send the selected file to the badge."""
@@ -81,9 +86,14 @@ class Application(Frame):
                     self.send_file(True)
                 else:
                     raise
-            output = self.badge.read_text()
-            if output:
-                self.output.insert("end", output)
+
+    def poll_serial(self):
+        "Checks serial port for incoming bytes, reads and displays them."
+        if self.badge is not None:
+            bytes_in = self.badge.read_from()
+            if bytes_in:
+                self.output.insert("end", bytes_in + b'\n')
+        self.after(SERIAL_POLL_INTERVAL, self.poll_serial)
 
     def toggle_connect(self):
         "If connected, disconnect, otherwise connect."
@@ -104,7 +114,7 @@ class Application(Frame):
     def connect(self):
         """Attempt to connect to a badge; toggle Connect button if successful."""
         try:
-            self.badge = Badge()
+            self.badge = Badge(listener=self.on_bytes_sent, min_write_dt=0.01)
             self.connect_status.config(text="Connected: " + self.badge.os_device)
             self.connect_btn.config(text="Disconnect")
             # enable "Execute" if file is selected
@@ -118,6 +128,12 @@ class Application(Frame):
             self.exec_btn.state(["!disabled"])
         else:
             self.exec_btn.state(["disabled"])
+
+    def on_bytes_sent(self, data, count):
+        self.sentto.insert("end", data[:count])
+        if count < len(data):
+            self.sentto.insert("end", data[count:], "error")
+        self.sentto.insert("end", "\n")
 
 
 def main():
