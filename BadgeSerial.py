@@ -48,12 +48,16 @@ class BadgeSerial(object):
 
     :param dict cmap: Dictionary from color name to color value.
 
+    :param function listener: function callback: called for each write to
+        serial port, takes two arguments: the data written (bytes) and the
+        count returned from the write() call (int).
+
     """
     def_dev_to_try = ['/dev/ttyACM%d'%i for i in range(0, 10)]
 
     # TODO: Support other OS serial port mappings
     def __init__(self, device=None, ser=None, min_write_dt=0.001,
-                 cmap=None):
+                 cmap=None, listener=None):
         if cmap is None:
             cmap = def_cmap
 
@@ -80,6 +84,7 @@ class BadgeSerial(object):
         self.os_ser = ser
 
         self.cmap = cmap
+        self.listener = listener
 
         self.last_write_time = time.time()
         self.min_write_dt = min_write_dt
@@ -141,6 +146,8 @@ class BadgeSerial(object):
         #print("Ret len: %d" % ret_length)
 
         write_cnt = self.os_ser.write(data)
+        if self.listener:
+            self.listener(data, write_cnt)
 
         if not bypass_ret_length:
 
@@ -182,6 +189,8 @@ class BadgeSerial(object):
 
         self.last_write_time = time.time()
         cnt = self.os_ser.write(data)
+        if self.listener:
+            self.listener(data, cnt)
         self.os_ser.flushOutput()
         if save_ret:
             self.return_lines.append(self.os_ser.read_all())
@@ -223,9 +232,13 @@ class BadgeSerial(object):
         self.os_ser = BadgeSerial.connect_to_badge(self.os_device)
         return self
 
-    def read_text(self):
+    def read_from(self):
         "A non-blocking read, returns any bytes received"
-        size = self.os_ser.in_waiting()
-        if size:
-            return self.os_ser.read(size)
+        try:
+            size = self.os_ser.in_waiting
+            if size:
+                return self.os_ser.read(size)
+        except OSError:
+            # this is disturbingly common
+            pass
         return ""
