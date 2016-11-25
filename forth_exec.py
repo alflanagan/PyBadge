@@ -11,7 +11,7 @@ from tkinter import scrolledtext
 from BadgeSerial import BadgeSerialException
 from ForthBBProtocol import ForthBadge as Badge
 
-SERIAL_POLL_INTERVAL = 5  # milliseconds
+SERIAL_POLL_INTERVAL = 50  # milliseconds
 
 # pylint: disable=R0901
 class Application(Frame):
@@ -92,7 +92,7 @@ class Application(Frame):
         if self.badge is not None:
             bytes_in = self.badge.read_from()
             if bytes_in:
-                self.output.insert("end", bytes_in + b'\n')
+                self.output.insert("end", bytes_in)
         self.after(SERIAL_POLL_INTERVAL, self.poll_serial)
 
     def toggle_connect(self):
@@ -124,7 +124,7 @@ class Application(Frame):
 
     def on_file_selected(self, selected_file):
         """Respond to user selection of file by enabling the Execute button."""
-        if Path(selected_file).is_file:
+        if Path(selected_file).is_file and self.badge:
             self.exec_btn.state(["!disabled"])
         else:
             self.exec_btn.state(["disabled"])
