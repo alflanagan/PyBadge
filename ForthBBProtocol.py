@@ -2,9 +2,9 @@ from BadgeSerial import BadgeSerial
 
 
 class ForthBadge(BadgeSerial):
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         self.forth_is_ready = False
-        super().__init__(*args)
+        super().__init__(*args, **kwargs)
 
     def forth_run(self, *args, auto_polish=False):
         if not self.forth_is_ready:
