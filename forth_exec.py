@@ -74,12 +74,12 @@ class Application(Frame):
         if self.badge:
             try:
                 # oddly, very first set LED seems to not set correct color
-                self.badge.led(0, 0, 128)
-                self.badge.led(0, 0, 128)
+                # self.badge.led(0, 0, 128)
+                # self.badge.led(0, 0, 128)
                 with open(self.select.cget("value"), 'r') as forthin:
                     self.badge.forth_run(forthin.read())
                 time.sleep(1)  # because forth_run() may be too fast
-                self.badge.led(0, 128, 0)
+                # self.badge.led(0, 128, 0)
             except IOError:
                 if not _retry:
                     self.connect()
