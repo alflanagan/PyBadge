@@ -114,7 +114,7 @@ class Application(Frame):
     def connect(self):
         """Attempt to connect to a badge; toggle Connect button if successful."""
         try:
-            self.badge = Badge(listener=self.on_bytes_sent, min_write_dt=0.01)
+            self.badge = Badge(on_serial_write=self.on_bytes_sent, min_write_dt=0.01)
             self.connect_status.config(text="Connected: " + self.badge.os_device)
             self.connect_btn.config(text="Disconnect")
             # enable "Execute" if file is selected

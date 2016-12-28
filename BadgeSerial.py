@@ -57,7 +57,7 @@ class BadgeSerial(object):
 
     # TODO: Support other OS serial port mappings
     def __init__(self, device=None, ser=None, min_write_dt=0.001,
-                 cmap=None, listener=None):
+                 cmap=None, on_serial_write=None):
         if cmap is None:
             cmap = def_cmap
 
@@ -74,7 +74,7 @@ class BadgeSerial(object):
                 try:
                     ser = BadgeSerial.connect_to_badge(td)
                     dev = td
-                except:
+                except serial.SerialException:
                     continue
 
         if dev is None:
@@ -84,7 +84,7 @@ class BadgeSerial(object):
         self.os_ser = ser
 
         self.cmap = cmap
-        self.listener = listener
+        self.on_serial_write = on_serial_write
 
         self.last_write_time = time.time()
         self.min_write_dt = min_write_dt
@@ -125,6 +125,7 @@ class BadgeSerial(object):
                 b_str += bytes([d])
         return b_str
 
+    # pylint: disable=unused-argument
     def _flushing_write(self, data, save_ret=False,
                         bypass_ret_length=False, **kwargs):
         #while time.time() - self.last_write_time < self.min_
@@ -140,21 +141,21 @@ class BadgeSerial(object):
 
         # EX:  b'1 Ok redled\nOk '
         # 'Ok ' between each word, then the final newline ('\nOk')
-        ret_length= total_len + (len(words) - 1)*len('Ok ') + len('\nOk')
+        ret_length = total_len + (len(words) - 1)*len('Ok ') + len('\nOk')
         ret_length = 0
         #print("DATA: %s" % data.decode())
         #print("Ret len: %d" % ret_length)
 
         write_cnt = self.os_ser.write(data)
-        if self.listener:
-            self.listener(data, write_cnt)
+        if self.on_serial_write:
+            self.on_serial_write(data, write_cnt)
 
         if not bypass_ret_length:
 
             self.os_ser.flush()
             read_cnt = len(self.os_ser.read_all())
             #print("Performing ret length checks")
-            while ret_length  > read_cnt:
+            while ret_length > read_cnt:
                 read_cnt += len(self.os_ser.read_all())
                 #print("Read count: %d/%d" % (read_cnt, ret_length))
                 logging.info("Read count: %d/%d", read_cnt, ret_length)
@@ -189,8 +190,8 @@ class BadgeSerial(object):
 
         self.last_write_time = time.time()
         cnt = self.os_ser.write(data)
-        if self.listener:
-            self.listener(data, cnt)
+        if self.on_serial_write:
+            self.on_serial_write(data, cnt)
         self.os_ser.flushOutput()
         if save_ret:
             self.return_lines.append(self.os_ser.read_all())
@@ -207,7 +208,7 @@ class BadgeSerial(object):
             write_kwargs = dict()
 
         byte_data = BadgeSerial.make_bytes(*args)
-        write_cnt =  self._write(byte_data, **write_kwargs)
+        return self._write(byte_data, **write_kwargs)
 
     @staticmethod
     def pack_rgb(red, green, blue):
