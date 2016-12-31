@@ -242,4 +242,4 @@ class BadgeSerial(object):
         except OSError:
             # this is disturbingly common
             pass
-        return ""
+        return b""
