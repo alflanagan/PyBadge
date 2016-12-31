@@ -5,7 +5,7 @@ from pathlib import Path
 import time
 
 from tkinter.ttk import Frame, Button, Label
-from tkinter import tix, Text
+from tkinter import tix
 from tkinter import scrolledtext
 
 from BadgeSerial import BadgeSerialException
@@ -45,9 +45,9 @@ class Application(Frame):
         self.sentto_label.grid(row=da_row, column=0, sticky='w', padx=10, pady=3)
         da_row += 1
         # height is in lines, width in characters
-        self.output = Text(self, height=16, width=40)
+        self.output = scrolledtext.ScrolledText(self, height=16, width=40)
         self.output.grid(row=da_row, column=1, padx=10)
-        self.sentto = Text(self, height=16, width=40)
+        self.sentto = scrolledtext.ScrolledText(self, height=16, width=40)
         self.sentto.tag_configure("error", background="red")
         self.sentto.grid(row=da_row, column=0, padx=10)
         da_row += 1
@@ -91,8 +91,11 @@ class Application(Frame):
         "Checks serial port for incoming bytes, reads and displays them."
         if self.badge is not None:
             bytes_in = self.badge.read_from()
+            bytes_in = bytes_in.replace(b'ir_error', b'')
             if bytes_in:
                 self.output.insert("end", bytes_in)
+                self.output.yview_moveto(1) # scroll to end
+
         self.after(SERIAL_POLL_INTERVAL, self.poll_serial)
 
     def toggle_connect(self):
@@ -130,10 +133,12 @@ class Application(Frame):
             self.exec_btn.state(["disabled"])
 
     def on_bytes_sent(self, data, count):
+        """Callback routine to show bytes sent to screen."""
         self.sentto.insert("end", data[:count])
         if count < len(data):
             self.sentto.insert("end", data[count:], "error")
         self.sentto.insert("end", "\n")
+        self.sentto.yview_moveto(1)
 
 
 def main():
